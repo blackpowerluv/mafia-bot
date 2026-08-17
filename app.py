@@ -1,22 +1,28 @@
 import os
 import json
+import traceback
 from aiohttp import web
 from bot import bot, dp
+from aiogram.types import Update
 
 app = web.Application()
 
 async def webhook(request):
     try:
-        # Получаем данные от Telegram (это обычный словарь Python)
-        update_data = await request.json()
-        
-        # В Aiogram 3 feed_update принимает только СЛОВАРЬ (dict)
-        await dp.feed_update(update_data)
+        # 1. Получаем данные от Telegram
+        data = await request.json()
+        print("📩 Получен POST запрос на /webhook")
+
+        # 2. ПРАВИЛЬНО: Сначала превращаем словарь в объект Update
+        update = Update.model_validate(data)
+
+        # 3. Затем передаем ОБЪЕКТ Update и самого БОТА в feed_update
+        # В Aiogram 3 это делается именно так
+        await dp.feed_update(bot, update)
         
         return web.Response(text="OK", status=200)
     except Exception as e:
-        print(f"❌ Ошибка: {e}")
-        import traceback
+        print(f"❌ Ошибка webhook: {e}")
         traceback.print_exc()
         return web.Response(text="Error", status=500)
 
@@ -30,7 +36,7 @@ async def on_shutdown(app):
     await bot.session.close()
 
 app.router.add_post("/webhook", webhook)
-app.router.add_get("/", lambda r: web.Response(text="OK", status=200))
+app.router.add_get("/", lambda r: web.Response(text="Bot is running!", status=200))
 app.router.add_get("/health", lambda r: web.Response(text="OK", status=200))
 
 app.on_startup.append(on_startup)
