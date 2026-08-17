@@ -7,30 +7,12 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage
-from flask import Flask, request
 
 # ======= КОНФИГ =======
 TOKEN = "8331219511:AAESgh6Bk70GyID3dhfI_bFvwK65b8G00CQ"
 ADMINS = [1164507938, 6390275949, 5104412904, 5728665841, 7124674387]
 MAIN_CHAT = -1004427827487
 ADMIN_CHAT = -1003912490630
-
-# Цены в пистолетиках
-PRICES = {
-    "at": 10,
-    "diamond": 3,
-    "stars": 20,
-    "casino": 5
-}
-
-# Уровни скидок за сданные кристаллы
-DISCOUNT_LEVELS = [
-    {"crystals": 1, "discount": 1},
-    {"crystals": 5, "discount": 10},
-    {"crystals": 20, "discount": 50},
-    {"crystals": 50, "discount": 70},
-    {"crystals": 100, "discount": 90}
-]
 
 # ======= ХРАНИЛИЩЕ =======
 DATA_FILE = "data.json"
@@ -117,7 +99,6 @@ def is_at_active(user_id):
     return False
 
 def parse_at_time(text):
-    """Парсит +at 24h или +at ДД.ММ.ГГГГ ЧЧ:ММ ДД.ММ.ГГГГ ЧЧ:ММ"""
     parts = text.split()
     if len(parts) == 2 and parts[1].lower() == "24h":
         now = datetime.now()
@@ -220,7 +201,6 @@ async def give_at(message: types.Message):
     if message.reply_to_message is None:
         await message.reply("❌ Ответь на сообщение игрока, которому выдаёшь АТ.")
         return
-    # Определяем пользователя
     user_id = None
     if message.reply_to_message.forward_from:
         user_id = message.reply_to_message.forward_from.id
@@ -447,21 +427,3 @@ async def admin_reply(message: types.Message):
         user_id = message.reply_to_message.forward_from.id
         await bot.send_message(user_id, f"📩 *Ответ админа:*\n{message.text}", parse_mode="Markdown")
         await message.reply("✅ Ответ отправлен игроку в личку.")
-
-# ---- ЗАПУСК (webhook) ----
-async def set_webhook():
-    """Устанавливает вебхук при запуске"""
-    webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
-    await bot.set_webhook(url=webhook_url)
-    print(f"✅ Webhook установлен: {webhook_url}")
-
-async def on_startup():
-    """Действия при запуске бота"""
-    print("🚀 Бот запущен!")
-    await set_webhook()
-
-async def on_shutdown():
-    """Действия при остановке бота"""
-    await bot.delete_webhook()
-    await bot.session.close()
-    print("🛑 Бот остановлен")
