@@ -3,7 +3,6 @@ import json
 import traceback
 from aiohttp import web
 from bot import bot, dp
-from aiogram.types import Update
 
 # Создаем приложение aiohttp
 app = web.Application()
@@ -12,14 +11,11 @@ async def webhook(request):
     """Обработка входящих обновлений от Telegram"""
     try:
         print("📩 Получен POST запрос на /webhook")
-        # Получаем данные JSON от Telegram
-        data = await request.json()
+        # Получаем данные от Telegram (это обычный словарь)
+        update_data = await request.json()
         
-        # Создаем объект Update
-        update = Update.model_validate(data)
-        
-        # ПРАВИЛЬНЫЙ МЕТОД ДЛЯ AIOGRAM 3
-        await dp.feed_update(update)
+        # ВАЖНО: feed_update принимает СЛОВАРЬ (dict), а не объект Update!
+        await dp.feed_update(update_data)
         
         return web.Response(text="OK", status=200)
     except Exception as e:
@@ -31,6 +27,9 @@ async def on_startup(app):
     """Установка вебхука при старте"""
     print("🚀 Запуск бота через webhook...")
     try:
+        # Убедимся, что старый вебхук удален перед установкой нового
+        await bot.delete_webhook(drop_pending_updates=True)
+        
         webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
         await bot.set_webhook(url=webhook_url)
         print(f"✅ Webhook установлен: {webhook_url}")
