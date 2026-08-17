@@ -1,13 +1,40 @@
-from aiogram import Bot, Dispatcher, types
+import asyncio
+import json
+import os
+import random
+from datetime import datetime, timedelta
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.fsm.storage.memory import MemoryStorage
 
+# ======= КОНФИГ =======
 TOKEN = "8331219511:AAESgh6Bk70GyID3dhfI_bFvwK65b8G00CQ"
-bot = Bot(token=TOKEN)
-dp = Dispatcher()
+ADMINS = [1164507938, 6390275949, 5104412904, 5728665841, 7124674387]
+MAIN_CHAT = -1004427827487
+ADMIN_CHAT = -1003912490630
 
-@dp.message(Command("start"))
-async def start(message: types.Message):
-    await message.answer("✅ Бот работает! Теперь будем подключать остальной код.")def load_data():
+# Цены в пистолетиках
+PRICES = {
+    "at": 10,
+    "diamond": 3,
+    "stars": 20,
+    "casino": 5
+}
+
+# Уровни скидок за сданные кристаллы
+DISCOUNT_LEVELS = [
+    {"crystals": 1, "discount": 1},
+    {"crystals": 5, "discount": 10},
+    {"crystals": 20, "discount": 50},
+    {"crystals": 50, "discount": 70},
+    {"crystals": 100, "discount": 90}
+]
+
+# ======= ХРАНИЛИЩЕ =======
+DATA_FILE = "data.json"
+
+def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as f:
             return json.load(f)
@@ -103,6 +130,26 @@ def parse_at_time(text):
         except:
             pass
     return None, None
+
+# ---- КНОПКИ (КЛАВИАТУРА) ----
+def get_main_keyboard():
+    kb = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="🛒 Магазин"), KeyboardButton(text="💎 Сдать кристаллы")],
+            [KeyboardButton(text="📩 Связаться с админами"), KeyboardButton(text="🛡️ Запросить АТ")]
+        ],
+        resize_keyboard=True
+    )
+    return kb
+
+# ---- КОМАНДА /START (Показать меню) ----
+@dp.message(Command("start"))
+async def start(message: types.Message):
+    await message.answer(
+        "👋 Привет! Я бот для игры в Мафию.\n"
+        "Используй меню ниже или команды: /balance, /exchange",
+        reply_markup=get_main_keyboard()
+    )
 
 # ---- КОМАНДА /BALANCE ----
 @dp.message(Command("balance"))
@@ -244,7 +291,7 @@ async def stat_regs(message: types.Message):
         text += f"{i}. {name} — {info['regs']} регов\n"
     await message.reply(text, parse_mode="Markdown")
 
-# ---- КНОПКИ В ЛС ----
+# ---- КНОПКИ В ЛС (МАГАЗИН) ----
 @dp.message(F.text == "🛒 Магазин")
 async def shop(message: types.Message):
     discount = get_discount(message.from_user.id)
