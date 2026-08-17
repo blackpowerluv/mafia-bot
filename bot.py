@@ -1,40 +1,13 @@
-import asyncio
-import json
-import os
-import random
-from datetime import datetime, timedelta
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.fsm.storage.memory import MemoryStorage
 
-# ======= КОНФИГ =======
 TOKEN = "8331219511:AAESgh6Bk70GyID3dhfI_bFvwK65b8G00CQ"
-ADMINS = [1164507938, 6390275949, 5104412904, 5728665841, 7124674387]
-MAIN_CHAT = -1004427827487
-ADMIN_CHAT = -1003912490630
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
 
-# Цены в пистолетиках
-PRICES = {
-    "at": 10,
-    "diamond": 3,
-    "stars": 20,
-    "casino": 5
-}
-
-# Уровни скидок за сданные кристаллы
-DISCOUNT_LEVELS = [
-    {"crystals": 1, "discount": 1},
-    {"crystals": 5, "discount": 10},
-    {"crystals": 20, "discount": 50},
-    {"crystals": 50, "discount": 70},
-    {"crystals": 100, "discount": 90}
-]
-
-# ======= ХРАНИЛИЩЕ =======
-DATA_FILE = "data.json"
-
-def load_data():
+@dp.message(Command("start"))
+async def start(message: types.Message):
+    await message.answer("✅ Бот работает! Теперь будем подключать остальной код.")def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as f:
             return json.load(f)
