@@ -44,3 +44,14 @@ async def process_callback(callback: types.CallbackQuery):
 
     # Меняем текст сообщения
     await callback.message.edit_text("✅ Ты нажал на кнопку! Всё работает отлично!")
+    # ==========================================
+# УСТАНОВКА ВЕБХУКА ПРИ ЗАПУСКЕ
+# ==========================================
+async def on_startup():
+    webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
+    await bot.set_webhook(url=webhook_url)
+    print("✅ Webhook установлен!")
+
+# Запускаем установку при старте
+import asyncio
+asyncio.run(on_startup())
