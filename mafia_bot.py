@@ -452,6 +452,7 @@ async def forward_to_admin(message: types.Message):
         return
     if message.reply_to_message:
         return
+    # ВОТ ЭТУ СТРОКУ НУЖНО УДАЛИТЬ, ПОТОМУ ЧТО ЧАТА НЕТ:
     await bot.forward_message(chat_id=ADMIN_CHAT, from_chat_id=message.chat.id, message_id=message.message_id)
     await message.answer("✅ Твоё сообщение отправлено админам. Они скоро ответят.")
 
@@ -462,5 +463,6 @@ async def admin_reply(message: types.Message):
         return
     if message.reply_to_message and message.reply_to_message.forward_from:
         user_id = message.reply_to_message.forward_from.id
+        # И ВОТ ЭТУ СТРОКУ ТОЖЕ УДАЛИТЕ:
         await bot.send_message(user_id, f"📩 *Ответ админа:*\n{message.text}", parse_mode="Markdown")
         await message.reply("✅ Ответ отправлен игроку в личку.")
