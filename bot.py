@@ -7,6 +7,7 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage
+from flask import Flask, request
 
 # ======= КОНФИГ =======
 TOKEN = "8331219511:AAESgh6Bk70GyID3dhfI_bFvwK65b8G00CQ"
@@ -447,13 +448,20 @@ async def admin_reply(message: types.Message):
         await bot.send_message(user_id, f"📩 *Ответ админа:*\n{message.text}", parse_mode="Markdown")
         await message.reply("✅ Ответ отправлен игроку в личку.")
 
-# ---- ЗАПУСК ----
-async def main():
-    print("🚀 Бот запущен!")
-    try:
-        await dp.start_polling(bot)
-    finally:
-        await bot.session.close()
+# ---- ЗАПУСК (webhook) ----
+async def set_webhook():
+    """Устанавливает вебхук при запуске"""
+    webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
+    await bot.set_webhook(url=webhook_url)
+    print(f"✅ Webhook установлен: {webhook_url}")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+async def on_startup():
+    """Действия при запуске бота"""
+    print("🚀 Бот запущен!")
+    await set_webhook()
+
+async def on_shutdown():
+    """Действия при остановке бота"""
+    await bot.delete_webhook()
+    await bot.session.close()
+    print("🛑 Бот остановлен")
