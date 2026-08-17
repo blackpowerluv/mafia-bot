@@ -1,4 +1,6 @@
 import os
+import traceback
+import json
 from aiohttp import web
 from mafia_bot import bot, dp
 
@@ -6,12 +8,20 @@ app = web.Application()
 
 async def webhook(request):
     try:
+        # Получаем данные
         data = await request.json()
+        print("📩 Получен POST запрос на /webhook")
+        
+        # Пытаемся обработать
         await dp.feed_webhook_update(bot, data)
+        
+        # Если дошли до сюда - всё ок
+        print("✅ Обработка прошла успешно")
         return web.Response(text="OK", status=200)
+        
     except Exception as e:
-        print(f"❌ Ошибка: {e}")
-        import traceback
+        # Это выведет полную ошибку в логи Render
+        print("❌ КРИТИЧЕСКАЯ ОШИБКА В ВЕБХУКЕ:")
         traceback.print_exc()
         return web.Response(text="Error", status=500)
 
