@@ -444,7 +444,7 @@ async def handle_purchase(callback: types.CallbackQuery):
             await callback.answer(f"❌ Не хватает пистолетиков! Нужно {price}", show_alert=True)
 
 # ---- ПЕРЕСЫЛКА СООБЩЕНИЙ ИЗ КНОПКИ "СВЯЗАТЬСЯ" ----
-@dp.message(F.chat.type == "private")
+#@dp.message(F.chat.type == "private")
 async def forward_to_admin(message: types.Message):
     if message.text in ["🛒 Магазин", "💎 Сдать кристаллы", "📩 Связаться с админами", "🛡️ Запросить АТ"]:
         return
@@ -457,7 +457,7 @@ async def forward_to_admin(message: types.Message):
     await message.answer("✅ Твоё сообщение отправлено админам. Они скоро ответят.")
 
 # ---- ОБРАБОТКА ОТВЕТОВ АДМИНОВ ИГРОКАМ ----
-@dp.message(F.chat.id == ADMIN_CHAT)
+#@dp.message(F.chat.id == ADMIN_CHAT)
 async def admin_reply(message: types.Message):
     if message.from_user.id not in ADMINS:
         return
