@@ -3,22 +3,18 @@ import json
 import traceback
 from aiohttp import web
 from bot import bot, dp
-from aiogram.types import Update
 
 app = web.Application()
 
 async def webhook(request):
     try:
-        # 1. Получаем данные от Telegram
+        # Получаем данные от Telegram
         data = await request.json()
         print("📩 Получен POST запрос на /webhook")
 
-        # 2. ПРАВИЛЬНО: Сначала превращаем словарь в объект Update
-        update = Update.model_validate(data)
-
-        # 3. Затем передаем ОБЪЕКТ Update и самого БОТА в feed_update
-        # В Aiogram 3 это делается именно так
-        await dp.feed_update(bot, update)
+        # ПРАВИЛЬНЫЙ МЕТОД ДЛЯ AIOGRAM 3.30
+        # process_update принимает простой словарь (dict) и не требует передачи бота
+        await dp.process_update(data)
         
         return web.Response(text="OK", status=200)
     except Exception as e:
