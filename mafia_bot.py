@@ -442,14 +442,3 @@ async def handle_purchase(callback: types.CallbackQuery):
             await callback.answer(f"🎰 {text}", show_alert=True)
         else:
             await callback.answer(f"❌ Не хватает пистолетиков! Нужно {price}", show_alert=True)
-
-# ==========================================
-# УСТАНОВКА ВЕБХУКА ПРИ ЗАПУСКЕ (ОСТАВЛЯЕМ!)
-# ==========================================
-async def on_startup():
-    webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
-    await bot.set_webhook(url=webhook_url)
-    print("✅ Webhook установлен!")
-
-import asyncio
-asyncio.run(on_startup())
