@@ -2,7 +2,7 @@ from flask import Flask, request
 import asyncio
 import os
 import json
-from bot import bot, dp, on_startup, on_shutdown
+from bot import bot, dp
 
 app = Flask(__name__)
 
@@ -14,48 +14,42 @@ def health():
 @app.route('/webhook', methods=['POST'])
 async def webhook():
     """Обработка входящих обновлений от Telegram"""
-    update_data = request.get_data(as_text=True)
-    update_obj = types.Update(**json.loads(update_data))
-    
-    # Обрабатываем обновление
-    await dp.process_update(update_obj)
-    return "OK", 200
+    try:
+        update_data = request.get_data(as_text=True)
+        update_obj = types.Update(**json.loads(update_data))
+        await dp.process_update(update_obj)
+        return "OK", 200
+    except Exception as e:
+        print(f"Ошибка webhook: {e}")
+        return "Error", 500
 
 @app.route('/set_webhook', methods=['GET'])
 def set_webhook():
     """Ручная установка вебхука"""
     try:
-        asyncio.run(bot.set_webhook(
-            url="https://mafia-bot-sggx.onrender.com/webhook"
-        ))
-        return "Webhook set successfully!", 200
+        webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
+        # Синхронный вызов асинхронной функции
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(bot.set_webhook(url=webhook_url))
+        loop.close()
+        return f"✅ Webhook установлен: {webhook_url}", 200
     except Exception as e:
-        return f"Error: {e}", 500
-
-# Инициализация при запуске
-@app.before_first_request
-def setup():
-    """Настройка вебхука при первом запросе"""
-    try:
-        # Устанавливаем вебхук в фоновом режиме
-        asyncio.run(bot.set_webhook(
-            url="https://mafia-bot-sggx.onrender.com/webhook"
-        ))
-        print("✅ Webhook установлен при запуске")
-    except Exception as e:
-        print(f"⚠️ Ошибка установки webhook: {e}")
+        return f"❌ Ошибка: {e}", 500
 
 if __name__ == "__main__":
     print("🚀 Запуск бота через webhook...")
     
-    # Устанавливаем вебхук
+    # Устанавливаем вебхук при старте
     try:
-        asyncio.run(bot.set_webhook(
-            url="https://mafia-bot-sggx.onrender.com/webhook"
-        ))
-        print("✅ Webhook успешно установлен")
+        webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(bot.set_webhook(url=webhook_url))
+        loop.close()
+        print(f"✅ Webhook установлен: {webhook_url}")
     except Exception as e:
-        print(f"⚠️ Ошибка webhook: {e}")
+        print(f"⚠️ Ошибка установки webhook: {e}")
     
     # Запускаем Flask
     port = int(os.environ.get("PORT", 5000))
