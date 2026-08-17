@@ -1,15 +1,38 @@
 import os
+import json
+import traceback
 from aiohttp import web
-import asyncio
+from bot import bot, dp
 
 app = web.Application()
 
-async def handle(request):
-    return web.Response(text="Я жив!", status=200)
+async def webhook(request):
+    try:
+        data = await request.json()
+        print("📩 Получен POST запрос на /webhook")
+        await dp.feed_webhook_update(bot, data)
+        return web.Response(text="OK", status=200)
+    except Exception as e:
+        print(f"❌ Ошибка webhook: {e}")
+        traceback.print_exc()
+        return web.Response(text="Error", status=500)
 
-app.router.add_get("/", handle)
-app.router.add_get("/health", handle)
+async def on_startup(app):
+    webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
+    await bot.set_webhook(url=webhook_url)
+    print(f"✅ Webhook установлен: {webhook_url}")
+
+async def on_shutdown(app):
+    await bot.delete_webhook()
+    await bot.session.close()
+
+app.router.add_post("/webhook", webhook)
+app.router.add_get("/", lambda r: web.Response(text="Bot is running!", status=200))
+app.router.add_get("/health", lambda r: web.Response(text="OK", status=200))
+
+app.on_startup.append(on_startup)
+app.on_shutdown.append(on_shutdown)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 10000)) # Жестко ставим 10000
     web.run_app(app, host="0.0.0.0", port=port)
