@@ -3,6 +3,7 @@ import asyncio
 import os
 import json
 from bot import bot, dp
+from aiogram.types import Update
 
 app = Flask(__name__)
 
@@ -12,15 +13,22 @@ def health():
     return "Bot is running!", 200
 
 @app.route('/webhook', methods=['POST'])
-async def webhook():
+def webhook():
     """Обработка входящих обновлений от Telegram"""
     try:
-        update_data = request.get_data(as_text=True)
-        update_obj = types.Update(**json.loads(update_data))
-        await dp.process_update(update_obj)
+        # Получаем данные от Telegram в формате JSON
+        update_data = request.get_json()
+        
+        # Создаём объект обновления
+        update = Update.model_validate(update_data)
+        
+        # ЗАПУСКАЕМ ОБРАБОТКУ АСИНХРОННОЙ ФУНКЦИИ
+        # asyncio.run() заставляет Flask дождаться выполнения Aiogram
+        asyncio.run(dp.process_update(update))
+        
         return "OK", 200
     except Exception as e:
-        print(f"Ошибка webhook: {e}")
+        print(f"❌ Ошибка webhook: {e}")
         return "Error", 500
 
 @app.route('/set_webhook', methods=['GET'])
@@ -28,7 +36,6 @@ def set_webhook():
     """Ручная установка вебхука"""
     try:
         webhook_url = "https://mafia-bot-sggx.onrender.com/webhook"
-        # Синхронный вызов асинхронной функции
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(bot.set_webhook(url=webhook_url))
