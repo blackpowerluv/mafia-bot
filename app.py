@@ -36,7 +36,7 @@ def webhook():
         update = Update.model_validate(update_data)
         
         # Запускаем обработку Aiogram
-        asyncio.run(dp.process_update(update))
+        asyncio.run(dp.feed_update(update))
         
         return "OK", 200
     except Exception as e:
