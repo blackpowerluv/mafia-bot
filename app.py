@@ -8,16 +8,12 @@ app = web.Application()
 
 async def webhook(request):
     try:
-        # Получаем данные JSON от Telegram
         data = await request.json()
         print("📩 Получен POST запрос на /webhook")
 
-        # === ЭТО ЕДИНСТВЕННЫЙ РАБОЧИЙ МЕТОД ДЛЯ ВАШЕЙ ВЕРСИИ AIOGRAM ===
-        # Он сам разберет входящий словарь, создаст объект Update
-        # и передаст его в обработчики.
+        # В Aiogram 3 правильный метод для вебхуков — feed_webhook_update
         await dp.feed_webhook_update(bot, data)
-        # ===================================================================
-
+        
         return web.Response(text="OK", status=200)
     except Exception as e:
         print(f"❌ Ошибка webhook: {e}")
