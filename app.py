@@ -1,29 +1,36 @@
 from flask import Flask
-import threading
+import asyncio
 import os
-# Импортируем вашего основного бота
-from bot import bot, dp
+import threading
+from aiogram import Bot, Dispatcher
+from bot import bot, dp, main  # импортируем вашего бота
 
 app = Flask(__name__)
 
-# Простые проверки для Render, чтобы сервис считался живым
 @app.route('/')
 @app.route('/health')
 def health():
-    return "Bot is running", 200
+    return "Bot is running!", 200
 
-# Функция, которая запускает вашего бота в фоновом потоке
+# Запускаем бота в отдельном потоке с правильным event loop
 def run_bot():
-    import asyncio
-    from bot import main
-    asyncio.run(main())
+    # Создаём новый event loop для этого потока
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    # Запускаем главную функцию бота
+    try:
+        loop.run_until_complete(main())
+    except Exception as e:
+        print(f"Ошибка бота: {e}")
+    finally:
+        loop.close()
 
 if __name__ == "__main__":
-    # Запускаем бота в отдельном потоке, чтобы Flask не блокировал его
-    bot_thread = threading.Thread(target=run_bot)
+    # Запускаем бота в фоновом потоке
+    bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
-
-    # Запускаем Flask-сервер, который будет занимать порт $PORT
-    # Render требует, чтобы приложение слушало этот порт [citation:2][citation:3]
+    
+    # Запускаем Flask для пингов Render
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
