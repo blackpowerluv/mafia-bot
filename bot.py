@@ -450,7 +450,10 @@ async def admin_reply(message: types.Message):
 # ---- ЗАПУСК ----
 async def main():
     print("🚀 Бот запущен!")
-    await dp.start_polling(bot)
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await bot.session.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
